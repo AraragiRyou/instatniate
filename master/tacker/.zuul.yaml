@@ -1,0 +1,162 @@
+- nodeset:
+    name: openstack-2-nodes
+    nodes:
+      - name: controller
+        label: ubuntu-bionic
+      - name: compute1
+        label: ubuntu-bionic
+    groups:
+      # Nodes running the compute service
+      - name: compute
+        nodes:
+          - controller
+          - compute1
+      # Nodes that are not the controller
+      - name: subnode
+        nodes:
+          - compute1
+      # Switch node for multinode networking setup
+      - name: switch
+        nodes:
+          - controller
+      # Peer nodes for multinode networking setup
+      - name: peers
+        nodes:
+          - compute1
+
+- job:
+    name: tacker-functional-devstack-multinode-python3
+    parent: devstack
+    description: |
+      Base multinodes job for devstack-based functional tests
+    nodeset: openstack-2-nodes
+    pre-run: playbooks/devstack/pre.yaml
+    run: playbooks/devstack/run.yaml
+    post-run: playbooks/devstack/post.yaml
+    roles:
+      - zuul: openstack-infra/devstack
+    timeout: 9000
+    required-projects:
+      - openstack/cinder
+      - openstack/glance
+      - openstack/keystone
+      - openstack/neutron
+      - openstack/nova
+      - openstack/placement
+      - openstack/aodh
+      - openstack/blazar
+      - openstack/blazar-nova
+      - openstack/horizon
+      - openstack/barbican
+      - openstack/ceilometer
+      - openstack/heat
+      - openstack/mistral
+      - openstack/mistral-dashboard
+      - openstack/networking-sfc
+      - openstack/python-barbicanclient
+      - openstack/python-blazarclient
+      - openstack/python-mistralclient
+      - openstack/python-tackerclient
+      - openstack/tacker
+      - openstack/tacker-horizon
+    vars:
+      devstack_localrc:
+        CELLSV2_SETUP: singleconductor
+        Q_DVR_MODE: dvr
+        DATABASE_TYPE: mysql
+        Q_SERVICE_PLUGIN_CLASSES: router,neutron.services.metering.metering_plugin.MeteringPlugin,networking_sfc.services.flowclassifier.plugin.FlowClassifierPlugin,neutron.services.qos.qos_plugin.QoSPlugin,qos
+        Q_ML2_PLUGIN_EXT_DRIVERS: port_security,qos
+        L2_AGENT_EXTENSIONS: qos
+      test_matrix_configs: [neutron]
+      zuul_work_dir: src/opendev.org/openstack/tacker
+    host-vars:
+      controller:
+        devstack_plugins:
+          heat: https://opendev.org/openstack/heat
+          networking-sfc: https://opendev.org/openstack/networking-sfc
+          aodh: https://opendev.org/openstack/aodh
+          ceilometer: https://opendev.org/openstack/ceilometer
+          barbican: https://opendev.org/openstack/barbican
+          mistral: https://opendev.org/openstack/mistral
+          tacker: https://opendev.org/openstack/tacker
+          blazar: https://opendev.org/openstack/blazar
+        devstack_services:
+          # Core services enabled for this branch.
+          # This list replaces the test-matrix.
+          # Shared services
+          mysql: true
+          rabbit: true
+          tls-proxy: false
+          # Keystone services
+          key: true
+          # Glance services
+          g-api: true
+          # Nova services
+          n-api: true
+          n-api-meta: true
+          n-cond: true
+          n-cpu: true
+          n-novnc: true
+          n-sch: true
+          placement-api: true
+          # Neutron services
+          # We need to keep using the neutron-legacy based services for
+          # now until all issues with the new lib/neutron code are solved
+          q-agt: true
+          q-dhcp: true
+          q-l3: true
+          q-meta: true
+          q-metering: true
+          q-svc: true
+          q-qos: true
+          # Cinder services
+          c-api: true
+          c-sch: true
+          c-vol: true
+          cinder: true
+          # Tacker services
+          tacker: true
+          tacker-conductor: true
+          # Services we don't need.
+          # This section is not really needed, it's for readability.
+          horizon: false
+          tempest: false
+          swift: false
+          s-account: false
+          s-container: false
+          s-object: false
+          s-proxy: false
+          c-bak: false
+        tox_install_siblings: false
+        tox_envlist: dsvm-functional
+    group-vars:
+      subnode:
+        devstack_localrc:
+          CELLSV2_SETUP: singleconductor
+          PHYSICAL_NETWORK: mgmtphysnet0
+          DATABASE_TYPE: mysql
+        devstack_services:
+          q-agt: true
+          n-api: false
+          n-api-meta: false
+          n-cauth: false
+          n-cond: false
+          n-cpu: true
+          n-novnc: false
+          n-obj: false
+          n-sch: false
+          horizon: false
+          tls-proxy: false
+
+- project:
+    templates:
+      - check-requirements
+      - openstack-cover-jobs
+      - openstack-lower-constraints-jobs
+      - openstack-python3-victoria-jobs
+      - publish-openstack-docs-pti
+      - release-notes-jobs-python3
+    check:
+      jobs:
+        - tacker-functional-devstack-multinode-python3:
+            voting: false

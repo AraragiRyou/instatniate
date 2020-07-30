@@ -1,0 +1,8 @@
+TOSCA-Meta-File-Version: 1.0
+Created-by: Hiroyuki JO
+CSAR-Version: 1.1
+Entry-Definitions: Definitions/helloworld3_top.vnfd.yaml
+
+Source: Files/kubernetes/pod.yaml
+Algorithm: SHA-256
+Hash: bfbe1d4c2289ed841683ab2f39994fed3911c34acaa32be68065b0a41746525f
