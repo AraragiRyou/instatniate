@@ -1,0 +1,76 @@
+{
+	"name": "Notebook 1",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "testpool",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "112g",
+			"driverCores": 16,
+			"executorMemory": "112g",
+			"executorCores": 16,
+			"numExecutors": 2,
+			"runAsWorkspaceSystemIdentity": false,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "9c514fef-9127-49c8-ac3b-a37d06b3e631"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"synapse_widget": {
+				"version": "0.1"
+			},
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "Synapse PySpark"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/750575ff-ab82-4fa7-9a62-b7052fd86473/resourceGroups/newgroup/providers/Microsoft.Synapse/workspaces/testworkspacenomanagednetwork/bigDataPools/testpool",
+				"name": "testpool",
+				"type": "Spark",
+				"endpoint": "https://testworkspacenomanagednetwork.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testpool",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net",
+					"authHeader": null
+				},
+				"sparkVersion": "3.3",
+				"nodeCount": 10,
+				"cores": 16,
+				"memory": 112
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"source": [
+					"import tensorflow as tf\r\n",
+					"import os\r\n",
+					"os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'\r\n",
+					"import tensorflow_hub as hub\r\n",
+					"\r\n",
+					"import requests.packages.urllib3.util.connection as urllib3_cn\r\n",
+					"def allowed_gai_family6(): return socket.AF_INET6  #ここ変更\r\n",
+					"urllib3_cn.allowed_gai_family = allowed_gai_family6  #ここ変更\r\n",
+					"# これ↑\r\n",
+					"\r\n",
+					"\r\n",
+					"bert_layer = hub.KerasLayer(\"https://tfhub.dev/tensorflow/bert_en_uncased_L-24_H-1024_A-16/4\",trainable=False)\r\n",
+					""
+				],
+				"execution_count": 18
+			}
+		]
+	}
+}
